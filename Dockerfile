@@ -18,7 +18,7 @@ RUN if [[ "${TARGETARCH}" == "amd64" ]]; \
       cargo build --release --target aarch64-unknown-linux-gnu && mv ./target/aarch64-unknown-linux-gnu/release/ddns-runner ./target/release/ddns-runner; \
     fi
 
-FROM debian:bookworm-20250929
+FROM debian:bookworm-20260623
 
 ARG ADDITIONAL_PACKAGES
 
