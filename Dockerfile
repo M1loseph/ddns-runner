@@ -5,7 +5,7 @@ ARG TARGETARCH
 
 RUN rustup target add x86_64-unknown-linux-gnu aarch64-unknown-linux-gnu
 
-RUN apt update && apt install -y pkg-config libssl-dev gcc-aarch64-linux-gnu gcc-x86-64-linux-gnu
+RUN apt-get update && apt-get install -y pkg-config libssl-dev gcc-aarch64-linux-gnu gcc-x86-64-linux-gnu
 
 WORKDIR /build/ddns-runner
 
@@ -18,11 +18,11 @@ RUN if [[ "${TARGETARCH}" == "amd64" ]]; \
       cargo build --release --target aarch64-unknown-linux-gnu && mv ./target/aarch64-unknown-linux-gnu/release/ddns-runner ./target/release/ddns-runner; \
     fi
 
-FROM debian:bookworm-20250929
+FROM debian:bookworm-20260623
 
 ARG ADDITIONAL_PACKAGES
 
-RUN apt update && apt install -y libssl-dev ${ADDITIONAL_PACKAGES} && apt clean
+RUN apt-get update && apt-get install -y libssl-dev ${ADDITIONAL_PACKAGES} && apt-get clean
 # Create a non-privileged user that the app will run under.
 # See https://docs.docker.com/go/dockerfile-user-best-practices/
 RUN groupadd -r appuser && useradd --no-log-init -r -g appuser -u 10001 --home /nonexistent --shell /sbin/nologin appuser
