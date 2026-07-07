@@ -1,0 +1,96 @@
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Setup rust toolchain
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Install OpenSSL dependencies
+        run: sudo apt install -y pkg-config libssl-dev
+
+      - name: Build app in debug
+        run: cargo build
+
+      - name: Run tests
+        run: cargo test
+
+  create_tag:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    outputs:
+      JAPANESE_FLASHCARDS_VERSION: ${{ steps.create_tag.outputs.JAPANESE_FLASHCARDS_VERSION }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Assert current commit does not have a tag
+        run: |
+          HEAD_TAGS=$(git tag --points-at HEAD)
+          if [ -n "$HEAD_TAGS" ]; then
+            echo "Current commit already has a tag. Skipping release."
+            exit 1
+          fi
+
+      - name: Create a tag
+        id: create_tag
+        run: |
+          VERSION=$(git describe --tags --abbrev=0)
+
+          MAJOR_VERSION=$(echo $VERSION | cut -d. -f 1)
+          MINOR_VERSION=$(echo $VERSION | cut -d. -f 2)
+
+          NEW_MINOR_VERSION=$((MINOR_VERSION + 1))
+
+          NEW_VERSION="${MAJOR_VERSION}.${NEW_MINOR_VERSION}"
+          git tag ${NEW_VERSION}
+          git push --tags
+          echo "JAPANESE_FLASHCARDS_VERSION=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
+
+
+  publish-to-dockerhub:
+    needs: create_tag
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          file: "Dockerfile"
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ddns-runner:${{ needs.create_tag.outputs.JAPANESE_FLASHCARDS_VERSION }}

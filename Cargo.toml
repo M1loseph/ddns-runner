@@ -1,0 +1,24 @@
+[package]
+name = "ddns-runner"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dotenv = { path = "rust-lib/dotenv" }
+migrations = { path = "rust-lib/migrations", features = [ "postgres" ] }
+# TODO: minimize the feature list
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.13" }
+log = "0.4.29"
+env_logger = "0.11.2"
+prometheus = "0.14.0"
+sysinfo = "0.37.2"
+tokio-postgres = "0.7.11"
+regex = "1.10.6"
+sha2 = "0.10.8"
+signal-hook = "0.4.1"
+anyhow = "1.0.100"
+axum = "0.8.8"
+
+[dev-dependencies]
+axum-test = "18.5.0"
