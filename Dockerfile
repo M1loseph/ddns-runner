@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM rust:1.97.1-bookworm AS build
+FROM --platform=$BUILDPLATFORM rust:1.98.0-bookworm AS build
 
 ARG TARGETOS
 ARG TARGETARCH
@@ -18,7 +18,7 @@ RUN if [[ "${TARGETARCH}" == "amd64" ]]; \
       cargo build --release --target aarch64-unknown-linux-gnu && mv ./target/aarch64-unknown-linux-gnu/release/ddns-runner ./target/release/ddns-runner; \
     fi
 
-FROM debian:bookworm-20260713
+FROM debian:bookworm-20260824
 
 ARG ADDITIONAL_PACKAGES
 
