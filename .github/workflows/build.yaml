@@ -18,7 +18,7 @@ jobs:
           submodules: recursive
 
       - name: Setup rust toolchain
-        uses: actions-rust-lang/setup-rust-toolchain@v1
+        uses: actions-rust-lang/setup-rust-toolchain@v2
 
       - name: Install OpenSSL dependencies
         run: sudo apt install -y pkg-config libssl-dev
